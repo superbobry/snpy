@@ -87,9 +87,9 @@ def parse(path, source=None):
     """Parses an openSNP file at a given location.
 
     :param str path: path to openSNP file, *all* formats are supported.
-    :param str source: should be one of ``"23andme"``,
-        ``"23andme-exome-vcf"``, ``"decodeme"`` or ``"ftdna-illumina"``;
-        will be extracted from the filename, if not provided explicitly.
+    :param str source: should be one of ``"23andme"``, ``"vcf"``,
+        ``"decodeme"`` or ``"ftdna"``; `source`` will be extracted from
+        the filename, if not provided explicitly.
     :returns list: of :class:`SNP` instances from a given file.
     :raises RuntimeError: if a given file cannot be parsed.
     """
@@ -99,9 +99,11 @@ def parse(path, source=None):
     try:
         handler = {"23andme": _23andme,
                    "23andme-exome-vcf": _23andme_exome,
+                   "ftdna-illumina": ftdna,
                    "decodeme": decodeme,
-                   "ftdna-illumina": ftdna}[source]
+                   "vcf": _23andme_exome,
+                   "ftdna": ftdna}[source]
     except KeyError:
         raise RuntimeError("Unsupported source: {0!r}".format(source))
     else:
-        return list(handler(path))
+        return handler(path)
