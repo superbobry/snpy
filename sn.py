@@ -40,7 +40,7 @@ class SNP(_SNP):
 
 
 def _23andme(path):
-    handle = csv.DictReader(open(path, "rb"),
+    handle = csv.DictReader(open(path, "r"),
         fieldnames=["name", "chromosome", "position", "genotype"],
         delimiter="\t")
 
@@ -53,14 +53,14 @@ def _23andme_exome(path):
     if vcf is None:
         raise RuntimeError("PyVCF not available, please 'easy_install' it.")
 
-    for r in vcf.VCFReader(open(path, "rb")):
+    for r in vcf.VCFReader(open(path, "r")):
         for sample in r.samples:
             yield SNP(name=r.ID, chromosome=r.CHROM, position=r.POS,
                       genotype=sample.gt_bases.replace("/", ""))
 
 
 def decodeme(path):
-    handle = csv.DictReader(open(path, "rb"),
+    handle = csv.DictReader(open(path, "r"),
         fieldnames=["name", "variation", "chromosome", "position",
                     "strand", "genotype"])
 
@@ -72,7 +72,7 @@ def decodeme(path):
 
 
 def ftdna(path):
-    handle = csv.DictReader(open(path, "rb"),
+    handle = csv.DictReader(open(path, "r"),
         fieldnames=["name", "chromosome", "position", "genotype"])
 
     for row in handle:
