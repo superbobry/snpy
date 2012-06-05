@@ -106,7 +106,8 @@ def guess_source(path):
 
 
 def parse(path, source=None):
-    """Parses an openSNP file at a given location.
+    """Returns a generator yielding :class:`SNP` from an openSNP file
+    at a given location.
 
     :param str path: path to openSNP file, *all* formats are supported.
     :param str source: should be one of ``"23andme"``, ``"vcf"``,
