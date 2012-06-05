@@ -23,6 +23,14 @@ except ImportError:
     vcf = None  # 23andMe exome data won't be supported.
 
 
+class SNPyError(Exception):
+    """Generic ``snpy`` exception class."""
+
+
+class UnknownSource(SNPyError):
+    """Raised when a parsed file has unknown source type."""
+
+
 _SNP = namedtuple("_SNP", ["name",
                            "variation",
                            "chromosome",
@@ -83,6 +91,20 @@ def ftdna(path):
             yield SNP(**row)
 
 
+def guess_source(path):
+    name, ext = os.path.split(path)
+    if ext == "vcf":
+        return ext  # VCF is easy ;)
+
+    # Okay, maybe it's in openSNP format: ``format.submission_id``.
+    try:
+        source, _ = path.rsplit(os.path.extsep, 2)[-2:]
+    except ValueError:
+        raise UnknownSource(path)
+    else:
+        return source
+
+
 def parse(path, source=None):
     """Parses an openSNP file at a given location.
 
@@ -94,7 +116,7 @@ def parse(path, source=None):
     :raises RuntimeError: if a given file cannot be parsed.
     """
     if source is None:
-        _, source, _ = path.rsplit(os.path.extsep)
+        source = guess_source(path)
 
     try:
         handler = {"23andme": _23andme,
@@ -104,6 +126,6 @@ def parse(path, source=None):
                    "vcf": _23andme_exome,
                    "ftdna": ftdna}[source]
     except KeyError:
-        raise RuntimeError("Unsupported source: {0!r}".format(source))
+        raise UnknownSource(path)
     else:
         return handler(path)
