@@ -54,6 +54,9 @@ def _23andme_exome(path):
         raise RuntimeError("PyVCF not available, please 'easy_install' it.")
 
     for r in vcf.VCFReader(open(path, "r")):
+        if not r.is_snp:
+            continue  # XXX Is it even possible?
+
         for sample in r.samples:
             yield SNP(name=r.ID, chromosome=r.CHROM, position=r.POS,
                       genotype=sample.gt_bases.replace("/", ""))
