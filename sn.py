@@ -41,6 +41,8 @@ _SNP = namedtuple("_SNP", ["name",
 
 class SNP(_SNP):
     """A wrapper for SNP data, provided by various formats."""
+    __slots__ = ()
+    
     def __new__(cls, name, chromosome, position, genotype,
                 variation=None, strand=None):
         return super(SNP, cls).__new__(cls, name, variation, chromosome,
