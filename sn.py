@@ -71,6 +71,14 @@ def _23andme_exome(path):
             yield SNP(name=r.ID, chromosome=r.CHROM, position=r.POS,
                       genotype=sample.gt_bases.replace("/", ""))
 
+def _23andme_ancestry(path):
+    handle = csv.DictReader(open(path, "r"),
+        fieldnames=["name", "chromosome", "position", "allele1", "allele2"],
+        delimiter="\t")
+    for row in handle:
+        if not row["name"].startswith(("#", "rsid")):
+            row["genotype"] = "{}{}".format(row.pop("allele1"), row.pop("allele2"))
+            yield SNP(**row)
 
 def decodeme(path):
     handle = csv.DictReader(open(path, "r"),
@@ -124,6 +132,7 @@ def parse(path, source=None):
     try:
         handler = {"23andme": _23andme,
                    "23andme-exome-vcf": _23andme_exome,
+                   "ancestry": _23andme_ancestry,
                    "ftdna-illumina": ftdna,
                    "decodeme": decodeme,
                    "vcf": _23andme_exome,
