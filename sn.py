@@ -88,12 +88,13 @@ def _genes_for_good(path):
         for r in vcf.VCFReader(open(path, "rb"), compressed=True):
             if not r.is_snp:
                 continue  # XXX Is it even possible?
-        for sample in r.samples:
-            yield SNP(name=r.ID, chromosome=r.CHROM, position=r.POS,
-                    genotype=sample.gt_bases.replace("/", ""))
+            for sample in r.samples:
+                yield SNP(name=r.ID, chromosome=r.CHROM, position=r.POS,
+                        genotype=sample.gt_bases.replace("/", ""))
     except OSError:
         # the gfg format is is likely version 1.1
-        yield _23andme(path)
+        for snp in _23andme(path):
+            yield snp
 
 
 def decodeme(path):
