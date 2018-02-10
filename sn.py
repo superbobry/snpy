@@ -96,6 +96,12 @@ def _genes_for_good(path):
         for snp in _23andme(path):
             yield snp
 
+def _iyg(path):
+    handle = csv.DictReader(open(path, "r"),
+            fieldnames=["name", "genotype"], delimiter="\t")
+    for row in handle:
+        yield SNP(name=row["name"], chromosome=None, position=0,
+                genotype=row["genotype"])
 
 def decodeme(path):
     handle = csv.DictReader(open(path, "r"),
@@ -151,6 +157,7 @@ def parse(path, source=None):
                    "23andme-exome-vcf": _23andme_exome,
                    "ancestry": _23andme_ancestry,
                    "genes-for-good": _genes_for_good,
+                   "IYG": _iyg,
                    "ftdna-illumina": ftdna,
                    "decodeme": decodeme,
                    "vcf": _23andme_exome,
