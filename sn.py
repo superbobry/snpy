@@ -80,6 +80,22 @@ def _23andme_ancestry(path):
             row["genotype"] = "{}{}".format(row.pop("allele1"), row.pop("allele2"))
             yield SNP(**row)
 
+def _genes_for_good(path):
+    if vcf is None:
+        raise RuntimeError("PyVCF not available, please 'easy_install' it.")
+
+    try:
+        for r in vcf.VCFReader(open(path, "rb"), compressed=True):
+            if not r.is_snp:
+                continue  # XXX Is it even possible?
+        for sample in r.samples:
+            yield SNP(name=r.ID, chromosome=r.CHROM, position=r.POS,
+                    genotype=sample.gt_bases.replace("/", ""))
+    except OSError:
+        # the gfg format is is likely version 1.1
+        yield _23andme(path)
+
+
 def decodeme(path):
     handle = csv.DictReader(open(path, "r"),
         fieldnames=["name", "variation", "chromosome", "position",
@@ -133,6 +149,7 @@ def parse(path, source=None):
         handler = {"23andme": _23andme,
                    "23andme-exome-vcf": _23andme_exome,
                    "ancestry": _23andme_ancestry,
+                   "genes-for-good": _genes_for_good,
                    "ftdna-illumina": ftdna,
                    "decodeme": decodeme,
                    "vcf": _23andme_exome,
