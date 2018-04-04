@@ -71,6 +71,37 @@ def _23andme_exome(path):
             yield SNP(name=r.ID, chromosome=r.CHROM, position=r.POS,
                       genotype=sample.gt_bases.replace("/", ""))
 
+def _23andme_ancestry(path):
+    handle = csv.DictReader(open(path, "r"),
+        fieldnames=["name", "chromosome", "position", "allele1", "allele2"],
+        delimiter="\t")
+    for row in handle:
+        if not row["name"].startswith(("#", "rsid")):
+            row["genotype"] = "{}{}".format(row.pop("allele1"), row.pop("allele2"))
+            yield SNP(**row)
+
+def _genes_for_good(path):
+    if vcf is None:
+        raise RuntimeError("PyVCF not available, please 'easy_install' it.")
+
+    try:
+        for r in vcf.VCFReader(open(path, "rb"), compressed=True):
+            if not r.is_snp:
+                continue  # XXX Is it even possible?
+            for sample in r.samples:
+                yield SNP(name=r.ID, chromosome=r.CHROM, position=r.POS,
+                        genotype=sample.gt_bases.replace("/", ""))
+    except OSError:
+        # the gfg format is is likely version 1.1
+        for snp in _23andme(path):
+            yield snp
+
+def _iyg(path):
+    handle = csv.DictReader(open(path, "r"),
+            fieldnames=["name", "genotype"], delimiter="\t")
+    for row in handle:
+        yield SNP(name=row["name"], chromosome=None, position=0,
+                genotype=row["genotype"])
 
 def decodeme(path):
     handle = csv.DictReader(open(path, "r"),
@@ -124,6 +155,9 @@ def parse(path, source=None):
     try:
         handler = {"23andme": _23andme,
                    "23andme-exome-vcf": _23andme_exome,
+                   "ancestry": _23andme_ancestry,
+                   "genes-for-good": _genes_for_good,
+                   "IYG": _iyg,
                    "ftdna-illumina": ftdna,
                    "decodeme": decodeme,
                    "vcf": _23andme_exome,
